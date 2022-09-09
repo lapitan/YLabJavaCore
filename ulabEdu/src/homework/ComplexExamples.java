@@ -12,9 +12,9 @@ public class ComplexExamples {
 
   static class Person {
 
-    int id;
+    final int id;
 
-    String name;
+    final String name;
 
     Person(int id, String name) {
       this.id = id;
@@ -27,14 +27,6 @@ public class ComplexExamples {
 
     public String getName() {
       return name;
-    }
-
-    public void setId(int id) {
-      this.id = id;
-    }
-
-    public void setName(String name) {
-      this.name = name;
     }
 
     @Override
@@ -137,7 +129,7 @@ public class ComplexExamples {
       Map<String, Long> personsGroupedByName = groupPersonsByName(personsSortedById);
       showMappedPersons(personsGroupedByName);
     } else {
-      System.out.println("Did not passes NPO check");
+      System.out.println("Did not passed NPO check");
     }
 
         /*
