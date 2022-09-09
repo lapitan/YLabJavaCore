@@ -1,6 +1,7 @@
 package homework;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -9,51 +10,64 @@ import static java.util.stream.Collectors.groupingBy;
 
 public class ComplexExamples {
 
-    static class Person {
-        final int id;
+  static class Person {
 
-        final String name;
+    int id;
 
-        Person(int id, String name) {
-            this.id = id;
-            this.name = name;
-        }
+    String name;
 
-        public int getId() {
-            return id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Person person)) return false;
-            return getId() == person.getId() && getName().equals(person.getName());
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(getId(), getName());
-        }
+    Person(int id, String name) {
+      this.id = id;
+      this.name = name;
     }
 
-    private static Person[] RAW_DATA = new Person[]{
-            new Person(0, "Harry"),
-            new Person(0, "Harry"), // дубликат
-            new Person(1, "Harry"), // тёзка
-            new Person(2, "Harry"),
-            new Person(3, "Emily"),
-            new Person(4, "Jack"),
-            new Person(4, "Jack"),
-            new Person(5, "Amelia"),
-            new Person(5, "Amelia"),
-            new Person(6, "Amelia"),
-            new Person(7, "Amelia"),
-            new Person(8, "Amelia"),
-    };
+    public int getId() {
+      return id;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setId(int id) {
+      this.id = id;
+    }
+
+    public void setName(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof Person person)) {
+        return false;
+      }
+      return getId() == person.getId() && getName().equals(person.getName());
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(getId(), getName());
+    }
+  }
+
+  private static Person[] RAW_DATA = new Person[]{
+      new Person(0, "Harry"),
+      new Person(0, "Harry"), // дубликат
+      new Person(1, "Harry"), // тёзка
+      new Person(2, "Harry"),
+      new Person(3, "Emily"),
+      new Person(4, "Jack"),
+      new Person(4, "Jack"),
+      new Person(5, "Amelia"),
+      new Person(5, "Amelia"),
+      new Person(6, "Amelia"),
+      new Person(7, "Amelia"),
+      new Person(8, "Amelia"),
+  };
         /*  Raw data:
 
         0 - Harry
@@ -88,19 +102,19 @@ public class ComplexExamples {
         1 - Jack (4)
      */
 
-    public static void main(String[] args) {
-        System.out.println("Raw data:");
-        System.out.println();
+  public static void main(String[] args) {
+    System.out.println("Raw data:");
+    System.out.println();
 
-        for (Person person : RAW_DATA) {
-            System.out.println(person.id + " - " + person.name);
-        }
+    for (Person person : RAW_DATA) {
+      System.out.println(person.id + " - " + person.name);
+    }
 
-        System.out.println();
-        System.out.println("**************************************************");
-        System.out.println();
-        System.out.println("Duplicate filtered, grouped by name, sorted by name and id:");
-        System.out.println();
+    System.out.println();
+    System.out.println("**************************************************");
+    System.out.println();
+    System.out.println("Duplicate filtered, grouped by name, sorted by name and id:");
+    System.out.println();
 
         /*
         Task1
@@ -116,13 +130,15 @@ public class ComplexExamples {
                 Key: Jack
                 Value:1
          */
-        Map<String, Long> filteredNamesMap= Arrays.stream(RAW_DATA)
-                .collect(Collectors.toSet())
-                .stream().collect(Collectors.groupingBy(Person::getName,Collectors.counting()))
-                .entrySet()
-                .stream()
-                .peek(stringLongEntry -> System.out.println("Key: "+stringLongEntry.getKey()+"\nValue: "+stringLongEntry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey,Map.Entry::getValue));
+
+    if (personNullCheck(RAW_DATA)) {
+      List<Person> personsWithoutDuplicates = removeDuplicates(RAW_DATA);
+      List<Person> personsSortedById = sortPersonsById(personsWithoutDuplicates);
+      Map<String, Long> personsGroupedByName = groupPersonsByName(personsSortedById);
+      showMappedPersons(personsGroupedByName);
+    } else {
+      System.out.println("Did not passes NPO check");
+    }
 
         /*
         Task2
@@ -130,11 +146,15 @@ public class ComplexExamples {
             [3, 4, 2, 7], 10 -> [3, 7] - вывести пару именно в скобках, которые дают сумму - 10
          */
 
-        int[] inputNumbersArray={7,5,6,10,9,4,8,2,3,15,8,10,10};
-        int targetSum=10;
+    int[] inputNumbersArray = {1, 2, 6, 1, 9, 1, 6, 0, 10};
+    int targetSum = 10;
 
-        int[] pair=findFirstPair(inputNumbersArray,targetSum);
-        showArray(pair);
+    if (arrayNullCheck(inputNumbersArray)) {
+      int[] pair = findFirstPair(inputNumbersArray, targetSum);
+      showArray(pair);
+    } else {
+      System.out.println("Array is null!");
+    }
 
         /*
         Task3
@@ -146,54 +166,100 @@ public class ComplexExamples {
                     fuzzySearch("cwheeel", "cartwheel"); // false
                     fuzzySearch("lw", "cartwheel"); // false
          */
-        System.out.println(fuzzySearch("car", "ca6$$#_rtwheel"));
+    System.out.println(fuzzySearch("car", "ca6$$#_rtwheel"));
+  }
+
+  private static List<Person> removeDuplicates(Person[] personsArray) {
+    assert personsArray != null;
+    return Arrays.stream(personsArray)
+        .distinct().toList();
+  }
+
+  private static List<Person> sortPersonsById(List<Person> personList) {
+    assert !personList.isEmpty();
+    return personList.stream()
+        .sorted(Comparator.comparingInt(Person::getId))
+        .toList();
+  }
+
+  private static Map<String, Long> groupPersonsByName(List<Person> personList) {
+    assert !personList.isEmpty();
+    return personList.stream()
+        .collect(Collectors.groupingBy(Person::getName, Collectors.counting()));
+  }
+
+  private static void showMappedPersons(Map<String, Long> personsMap) {
+    assert !personsMap.isEmpty();
+    personsMap.forEach((key, value) ->
+        System.out.println("Key: " + key + "\nValue: " + value));
+  }
+
+  private static boolean personNullCheck(Person[] personsArray) {
+    if (personsArray == null) {
+      return false;
     }
+    for (Person p : personsArray
+    ) {
+      if (p.getName() == null) {
+        return false;
+      }
+    }
+    return true;
+  }
 
-    private static int[] findFirstPair(int[] inputNumbersArray,int targetSum){
+  private static int[] findFirstPair(int[] inputNumbersArray, int targetSum) {
 
-        Arrays.sort(inputNumbersArray);
+    int[] result = new int[2];
+    HashSet<Integer> checkedNumbers = new HashSet<>();
 
-        int[] result=new int[2];
-        int leftBorder=0;
-        int rightBorder=inputNumbersArray.length-1;
-
-        while (leftBorder<rightBorder){
-            if (inputNumbersArray[leftBorder]+inputNumbersArray[rightBorder]>targetSum){
-                rightBorder--;
-                continue;
-            }
-            if (inputNumbersArray[leftBorder]+inputNumbersArray[rightBorder]<targetSum){
-                leftBorder++;
-                continue;
-            }
-            result[0]=inputNumbersArray[leftBorder];
-            result[1]=inputNumbersArray[rightBorder];
-            break;
-        }
-
+    for (int currNumber : inputNumbersArray
+    ) {
+      if (checkedNumbers.contains(targetSum - currNumber)) {
+        result[0] = currNumber;
+        result[1] = targetSum - currNumber;
         return result;
+      }
+      checkedNumbers.add(currNumber);
+    }
+    return result;
+
+  }
+
+  private static boolean arrayNullCheck(int[] array) {
+    return array != null;
+  }
+
+  private static void showArray(int[] array) {
+    System.out.print("[");
+    for (int i = 0; i < array.length - 1; i++) {
+      System.out.printf("%d, ", array[i]);
+    }
+    System.out.printf("%d]\n", array[array.length - 1]);
+  }
+
+  private static boolean fuzzySearch(String searchString, String fullString) {
+
+    if (searchString == null) {
+      System.out.println("Search string is null!");
+      return false;
     }
 
-    private static void showArray(int[] array){
-        System.out.print("[");
-        for (int i=0;i<array.length-1;i++){
-            System.out.printf("%d, ",array[i]);
-        }
-        System.out.printf("%d]\n",array[array.length-1]);
+    if (fullString == null) {
+      System.out.println("Full string is null!");
+      return false;
     }
 
-    private static boolean fuzzySearch(String searchString, String fullString){
+    int searchIndex = 0;
+    int fullIndex = 0;
 
-        int searchIndex=0;
-        int fullIndex=0;
-
-        while (searchIndex<searchString.length()&&fullIndex<fullString.length()){
-            if (searchString.charAt(searchIndex)==fullString.charAt(fullIndex)){
-                searchIndex++;
-            }
-            fullIndex++;
-        }
-
-        return searchIndex == searchString.length();
+    while (searchIndex < searchString.length() &&
+        fullIndex < fullString.length()) {
+      if (searchString.charAt(searchIndex) == fullString.charAt(fullIndex)) {
+        searchIndex++;
+      }
+      fullIndex++;
     }
+
+    return searchIndex == searchString.length();
+  }
 }
