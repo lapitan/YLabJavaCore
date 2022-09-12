@@ -10,56 +10,48 @@ import static java.util.stream.Collectors.groupingBy;
 
 public class ComplexExamples {
 
-  static class Person {
+    static class Person {
 
-    final int id;
+        final int id;
 
-    final String name;
+        final String name;
 
-    Person(int id, String name) {
-      this.id = id;
-      this.name = name;
+        Person(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Person person)) {
+                return false;
+            }
+            return getId() == person.getId() && getName().equals(person.getName());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getId(), getName());
+        }
     }
 
-    public int getId() {
-      return id;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof Person person)) {
-        return false;
-      }
-      return getId() == person.getId() && getName().equals(person.getName());
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(getId(), getName());
-    }
-  }
-
-  private static Person[] RAW_DATA = new Person[]{
-      new Person(0, "Harry"),
-      new Person(0, "Harry"), // дубликат
-      new Person(1, "Harry"), // тёзка
-      new Person(2, "Harry"),
-      new Person(3, "Emily"),
-      new Person(4, "Jack"),
-      new Person(4, "Jack"),
-      new Person(5, "Amelia"),
-      new Person(5, "Amelia"),
-      new Person(6, "Amelia"),
-      new Person(7, "Amelia"),
-      new Person(8, "Amelia"),
-  };
+    private static Person[] RAW_DATA = new Person[]{new Person(0, "Harry"), new Person(0, "Harry"),
+            // дубликат
+            new Person(1, "Harry"), // тёзка
+            new Person(2, "Harry"), new Person(3, "Emily"), new Person(4, "Jack"), new Person(4, "Jack"),
+            new Person(5, "Amelia"), new Person(5, "Amelia"), new Person(6, "Amelia"),
+            new Person(7, "Amelia"), new Person(8, "Amelia")};
         /*  Raw data:
 
         0 - Harry
@@ -94,19 +86,19 @@ public class ComplexExamples {
         1 - Jack (4)
      */
 
-  public static void main(String[] args) {
-    System.out.println("Raw data:");
-    System.out.println();
+    public static void main(String[] args) {
+        System.out.println("Raw data:");
+        System.out.println();
 
-    for (Person person : RAW_DATA) {
-      System.out.println(person.id + " - " + person.name);
-    }
+        for (Person person : RAW_DATA) {
+            System.out.println(person.id + " - " + person.name);
+        }
 
-    System.out.println();
-    System.out.println("**************************************************");
-    System.out.println();
-    System.out.println("Duplicate filtered, grouped by name, sorted by name and id:");
-    System.out.println();
+        System.out.println();
+        System.out.println("**************************************************");
+        System.out.println();
+        System.out.println("Duplicate filtered, grouped by name, sorted by name and id:");
+        System.out.println();
 
         /*
         Task1
@@ -123,30 +115,44 @@ public class ComplexExamples {
                 Value:1
          */
 
-    if (personNullCheck(RAW_DATA)) {
-      List<Person> personsWithoutDuplicates = removeDuplicates(RAW_DATA);
-      List<Person> personsSortedById = sortPersonsById(personsWithoutDuplicates);
-      Map<String, Long> personsGroupedByName = groupPersonsByName(personsSortedById);
-      showMappedPersons(personsGroupedByName);
-    } else {
-      System.out.println("Did not passed NPO check");
-    }
+        //RAW_DATA = null;
+        try {
+            Arrays.stream(Optional.ofNullable(RAW_DATA).
+                            orElseThrow(NullPointerException::new))
+                    .filter(p->p.getName()!=null)
+                    .distinct()
+                    .sorted(Comparator.comparingInt(Person::getId))
+                    .collect(Collectors.groupingBy(Person::getName, Collectors.counting()))
+                    .forEach((name, count) -> {
+                        System.out.println("Key: " + name + "\nValue: " + count);
+                    });
+        } catch (NullPointerException exception) {
+            System.out.println(exception.getMessage());
+        }
 
+        //Optional.ofNullable(Arrays.stream(RAW_DATA).toList()).
+
+//        .distinct()
+//        .sorted(Comparator.comparingInt(Person::getId))
+//        .collect(Collectors.groupingBy(Person::getName, Collectors.counting()))
+//        .forEach((name, count) -> {
+//          System.out.println("Key: " + name + "\nValue: " + count);
+//        });
         /*
         Task2
 
             [3, 4, 2, 7], 10 -> [3, 7] - вывести пару именно в скобках, которые дают сумму - 10
          */
 
-    int[] inputNumbersArray = {1, 2, 6, 1, 9, 1, 6, 0, 10};
-    int targetSum = 10;
+        int[] inputNumbersArray = {1, 2, 6, 1, 9, 1, 6, 0, 10};
+        int targetSum = 10;
 
-    if (arrayNullCheck(inputNumbersArray)) {
-      int[] pair = findFirstPair(inputNumbersArray, targetSum);
-      showArray(pair);
-    } else {
-      System.out.println("Array is null!");
-    }
+        if (arrayNullCheck(inputNumbersArray)) {
+            int[] pair = findFirstPair(inputNumbersArray, targetSum);
+            showArray(pair);
+        } else {
+            System.out.println("Array is null!");
+        }
 
         /*
         Task3
@@ -158,100 +164,65 @@ public class ComplexExamples {
                     fuzzySearch("cwheeel", "cartwheel"); // false
                     fuzzySearch("lw", "cartwheel"); // false
          */
-    System.out.println(fuzzySearch("car", "ca6$$#_rtwheel"));
-  }
-
-  private static List<Person> removeDuplicates(Person[] personsArray) {
-    assert personsArray != null;
-    return Arrays.stream(personsArray)
-        .distinct().toList();
-  }
-
-  private static List<Person> sortPersonsById(List<Person> personList) {
-    assert !personList.isEmpty();
-    return personList.stream()
-        .sorted(Comparator.comparingInt(Person::getId))
-        .toList();
-  }
-
-  private static Map<String, Long> groupPersonsByName(List<Person> personList) {
-    assert !personList.isEmpty();
-    return personList.stream()
-        .collect(Collectors.groupingBy(Person::getName, Collectors.counting()));
-  }
-
-  private static void showMappedPersons(Map<String, Long> personsMap) {
-    assert !personsMap.isEmpty();
-    personsMap.forEach((key, value) ->
-        System.out.println("Key: " + key + "\nValue: " + value));
-  }
-
-  private static boolean personNullCheck(Person[] personsArray) {
-    if (personsArray == null) {
-      return false;
+        System.out.println(fuzzySearch("car", "ca6$$#_rtwheel"));
     }
-    for (Person p : personsArray
-    ) {
-      if (p.getName() == null) {
-        return false;
-      }
+
+    private static List<Person> removeDuplicates(Person[] personsArray) {
+        assert personsArray != null;
+        return Arrays.stream(personsArray).distinct().toList();
     }
-    return true;
-  }
 
-  private static int[] findFirstPair(int[] inputNumbersArray, int targetSum) {
+    private static int[] findFirstPair(int[] inputNumbersArray, int targetSum) {
 
-    int[] result = new int[2];
-    HashSet<Integer> checkedNumbers = new HashSet<>();
+        int[] result = new int[2];
+        HashSet<Integer> checkedNumbers = new HashSet<>();
 
-    for (int currNumber : inputNumbersArray
-    ) {
-      if (checkedNumbers.contains(targetSum - currNumber)) {
-        result[0] = currNumber;
-        result[1] = targetSum - currNumber;
+        for (int currNumber : inputNumbersArray) {
+            if (checkedNumbers.contains(targetSum - currNumber)) {
+                result[0] = currNumber;
+                result[1] = targetSum - currNumber;
+                return result;
+            }
+            checkedNumbers.add(currNumber);
+        }
         return result;
-      }
-      checkedNumbers.add(currNumber);
-    }
-    return result;
 
-  }
-
-  private static boolean arrayNullCheck(int[] array) {
-    return array != null;
-  }
-
-  private static void showArray(int[] array) {
-    System.out.print("[");
-    for (int i = 0; i < array.length - 1; i++) {
-      System.out.printf("%d, ", array[i]);
-    }
-    System.out.printf("%d]\n", array[array.length - 1]);
-  }
-
-  private static boolean fuzzySearch(String searchString, String fullString) {
-
-    if (searchString == null) {
-      System.out.println("Search string is null!");
-      return false;
     }
 
-    if (fullString == null) {
-      System.out.println("Full string is null!");
-      return false;
+    private static boolean arrayNullCheck(int[] array) {
+        return array != null;
     }
 
-    int searchIndex = 0;
-    int fullIndex = 0;
-
-    while (searchIndex < searchString.length() &&
-        fullIndex < fullString.length()) {
-      if (searchString.charAt(searchIndex) == fullString.charAt(fullIndex)) {
-        searchIndex++;
-      }
-      fullIndex++;
+    private static void showArray(int[] array) {
+        System.out.print("[");
+        for (int i = 0; i < array.length - 1; i++) {
+            System.out.printf("%d, ", array[i]);
+        }
+        System.out.printf("%d]\n", array[array.length - 1]);
     }
 
-    return searchIndex == searchString.length();
-  }
+    private static boolean fuzzySearch(String searchString, String fullString) {
+
+        if (searchString == null) {
+            System.out.println("Search string is null!");
+            return false;
+        }
+
+        if (fullString == null) {
+            System.out.println("Full string is null!");
+            return false;
+        }
+
+        int searchIndex = 0;
+        int fullIndex = 0;
+
+        while (searchIndex < searchString.length() && fullIndex < fullString.length()) {
+            if (searchString.charAt(searchIndex) == fullString.charAt(fullIndex)) {
+                searchIndex++;
+            }
+            fullIndex++;
+        }
+
+        return searchIndex == searchString.length();
+    }
 }
